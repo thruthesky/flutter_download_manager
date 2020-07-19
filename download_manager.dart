@@ -52,8 +52,6 @@ class DownloadManager {
   /// - true if all files in files & stamp exists in local.
   Function onVerify;
 
-  int _downloadPercentage = 0;
-
   Map<String, dynamic> _fileStamp;
 
   _download() async {
@@ -88,19 +86,19 @@ class DownloadManager {
     var box = Hive.box(hiveBoxName);
 
     /// Get files to download in chunks (file string arrays with stamp 0)
-    List<String> files = [];
+    List<String> filesToDownload = [];
     for (String file in box.keys) {
       // print('$file : ${box.get(file)}');
       if (box.get(file, defaultValue: 0) == 0) {
-        files.add(file);
+        filesToDownload.add(file);
       }
     }
 
-    int noOfDownloads = files.length;
-    int noOfDone = _fileStamp.keys.length - noOfDownloads;
+    int noOfFilesToDownload = filesToDownload.length;
+    int noOfDownloaded = _fileStamp.keys.length - noOfFilesToDownload;
     int count = 0;
     int countSuccess = 0;
-    List<dynamic> chunks = _chunk(files, batch);
+    List<dynamic> chunks = _chunk(filesToDownload, batch);
     for (List<String> files in chunks) {
       count += files.length;
       var futures = <Future>[];
@@ -118,14 +116,23 @@ class DownloadManager {
         if (re[name] == true) {
           box.put(name, _fileStamp[name]);
           countSuccess++;
-          noOfDone++;
+          noOfDownloaded++;
         }
       }
-      _downloadPercentage = (count / noOfDownloads * 100).round();
+
+      int percentage = (count / noOfFilesToDownload * 100).round();
+      int overAllPercentage =
+          (noOfDownloaded / _fileStamp.keys.length * 100).round();
 
       print(
-          'Total files: ${_fileStamp.length}, No of downloads: $noOfDownloads, done: $noOfDone, success: $countSuccess');
-      onProgress(_downloadPercentage);
+          'Total files: ${_fileStamp.length}, No of files to download: $noOfFilesToDownload, noOfDownloaded: $noOfDownloaded, success: $countSuccess');
+      onProgress({
+        'noOfFiles': _fileStamp.keys.length,
+        'noOfFilesToDownload': noOfFilesToDownload,
+        'noOfDownloaded': noOfDownloaded,
+        'overAllPercentage': overAllPercentage,
+        'percentage': percentage
+      });
     }
     onComplete();
   }
