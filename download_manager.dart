@@ -124,8 +124,8 @@ class DownloadManager {
       int overAllPercentage =
           (noOfDownloaded / _fileStamp.keys.length * 100).round();
 
-      print(
-          'Total files: ${_fileStamp.length}, No of files to download: $noOfFilesToDownload, noOfDownloaded: $noOfDownloaded, success: $countSuccess');
+      // print(
+      //     'Total files: ${_fileStamp.length}, No of files to download: $noOfFilesToDownload, noOfDownloaded: $noOfDownloaded, success: $countSuccess');
       onProgress({
         'noOfFiles': _fileStamp.keys.length,
         'noOfFilesToDownload': noOfFilesToDownload,
@@ -158,7 +158,7 @@ class DownloadManager {
       );
       return {file: true};
     } catch (e) {
-      print(e);
+      // print(e);
       return {file: false};
     }
   }
@@ -180,9 +180,9 @@ class DownloadManager {
         } else if (f is Directory) {}
       }
     } catch (e) {
-      print(e.toString());
+      // print(e.toString());
     }
-    print('count: $count');
+    // print('count: $count');
     if (count == _fileStamp.keys.length) {
       onVerify(true);
     } else {
