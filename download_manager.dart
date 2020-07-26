@@ -15,9 +15,12 @@ class DownloadManager {
     @required this.saveFolder,
     this.batch = 30,
     @required this.hiveBoxName,
+    this.onBegin,
     this.onProgress,
     this.onComplete,
     this.onVerify,
+    this.onNoUpdate,
+    this.id,
   }) {
     _download();
   }
@@ -40,17 +43,27 @@ class DownloadManager {
   /// [hiveBoxName] hive box name to save the file & stamp information
   String hiveBoxName;
 
+  /// Callback when file download begins.
+  /// If there is no file to be downloaded, then this callback will not be called.
+  Function onBegin;
+
   /// Update progress callback
   Function onProgress;
 
   /// when complete
   Function onComplete;
 
+  /// when there is nothing to update
+  Function onNoUpdate;
+
   /// [onVerify] is a callback that will inform whether download success or not.
   /// It only works when [verify] is set to true.
   /// The return is bool.
   /// - true if all files in files & stamp exists in local.
   Function onVerify;
+
+  /// [id] id of the download. it's optional.
+  String id;
 
   Map<String, dynamic> _fileStamp;
 
@@ -66,6 +79,9 @@ class DownloadManager {
     Dio dio = new Dio();
     response = await dio.get(fileStampJsonUrl);
     _fileStamp = response.data;
+
+    // print('fileStampJsonUrl: $fileStampJsonUrl');
+    // print(_fileStamp);
 
     var box = Hive.box(hiveBoxName);
     for (String file in _fileStamp.keys) {
@@ -95,10 +111,29 @@ class DownloadManager {
     }
 
     int noOfFilesToDownload = filesToDownload.length;
+    if (noOfFilesToDownload == 0) {
+      print('$id: no new files to download (nothing to update): just return: ');
+      if (onNoUpdate != null) onNoUpdate();
+      return;
+    }
+    // print(filesToDownload);
+    if (onBegin != null) onBegin();
     int noOfDownloaded = _fileStamp.keys.length - noOfFilesToDownload;
     int count = 0;
-    int countSuccess = 0;
     List<dynamic> chunks = _chunk(filesToDownload, batch);
+
+    /// 시작하자 마자, 먼저 0% 를 한번 알린다.
+    onProgress({
+      'noOfFiles': _fileStamp.keys.length,
+      'noOfFilesToDownload': noOfFilesToDownload,
+      'noOfDownloaded': noOfDownloaded,
+      'overAllPercentage': 0,
+      'percentage': 0,
+    });
+
+    ///
+    ///
+    ///
     for (List<String> files in chunks) {
       count += files.length;
       var futures = <Future>[];
@@ -115,7 +150,6 @@ class DownloadManager {
         String name = re.keys.first;
         if (re[name] == true) {
           box.put(name, _fileStamp[name]);
-          countSuccess++;
           noOfDownloaded++;
         }
       }
@@ -131,10 +165,10 @@ class DownloadManager {
         'noOfFilesToDownload': noOfFilesToDownload,
         'noOfDownloaded': noOfDownloaded,
         'overAllPercentage': overAllPercentage,
-        'percentage': percentage
+        'percentage': percentage,
       });
     }
-    onComplete();
+    if (onComplete != null) onComplete();
   }
 
   _downloadFile(String file) async {
