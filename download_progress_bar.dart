@@ -19,6 +19,9 @@ class DownloadProgressBar extends StatelessWidget {
             Expanded(
               child: LinearProgressIndicator(
                 value: progress['percentage'] / 100,
+                valueColor:
+                    AlwaysStoppedAnimation(Theme.of(context).primaryColor),
+                backgroundColor: Theme.of(context).primaryColorLight,
               ),
             ),
             SizedBox(

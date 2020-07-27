@@ -77,6 +77,7 @@ class DownloadManager {
   _updateFileStamp() async {
     Response response;
     Dio dio = new Dio();
+    // print(' => await dio.get($fileStampJsonUrl); ');
     response = await dio.get(fileStampJsonUrl);
     _fileStamp = response.data;
 
@@ -112,7 +113,7 @@ class DownloadManager {
 
     int noOfFilesToDownload = filesToDownload.length;
     if (noOfFilesToDownload == 0) {
-      print('$id: no new files to download (nothing to update): just return: ');
+      // print('$id: no new files to download (nothing to update): just return: ');
       if (onNoUpdate != null) onNoUpdate();
       return;
     }
