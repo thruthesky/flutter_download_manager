@@ -146,12 +146,21 @@ class DownloadManager {
       /// Do `Future.all`
       List res = await Future.wait(futures);
 
+      // print('res: $res');
+
       /// If download success, then update the stamp.
       for (Map<String, bool> re in res) {
         String name = re.keys.first;
         if (re[name] == true) {
+          // print('box.put($name, ${_fileStamp[name]});');
           box.put(name, _fileStamp[name]);
           noOfDownloaded++;
+        } else {
+          /// 만약, 파일 다운로드 실패하면,
+          /// 서버에서 파일이 지워졌는데, HiveBox 에서는 stamp 가 0 으로 남아 있을 수 있다.
+          /// 그래서 Hive 에서 삭제를 한다.
+          // print('failed to download. $name');
+          box.delete(name);
         }
       }
 
