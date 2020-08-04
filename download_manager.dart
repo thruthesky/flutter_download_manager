@@ -78,7 +78,15 @@ class DownloadManager {
     Response response;
     Dio dio = new Dio();
     // print(' => await dio.get($fileStampJsonUrl); ');
-    response = await dio.get(fileStampJsonUrl);
+
+    try {
+      response = await dio.get(fileStampJsonUrl);
+    } catch (e) {
+      print('dio get error:');
+      print(e);
+      return;
+    }
+
     _fileStamp = response.data;
 
     // print('fileStampJsonUrl: $fileStampJsonUrl');
@@ -210,6 +218,7 @@ class DownloadManager {
   /// verifies if the files from backend are exists in local.
   _verify() async {
     if (onVerify == null) return;
+    if (_fileStamp == null) return;
     int count = 0;
     var directory = await getTemporaryDirectory();
     var dir = Directory(p.join(directory.path, saveFolder));
