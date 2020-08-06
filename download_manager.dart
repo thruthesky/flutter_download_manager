@@ -19,7 +19,6 @@ class DownloadManager {
     this.onProgress,
     this.onComplete,
     this.onVerify,
-    this.onNoUpdate,
     this.id,
   }) {
     _download();
@@ -50,16 +49,17 @@ class DownloadManager {
   /// Update progress callback
   Function onProgress;
 
-  /// when complete
+  /// when complete.
+  /// `true` will be passed if something has downloaded.
+  /// `false` will be passed if there was nothing to be downloaded.
+  ///   - meaning, if there is no update, returns false.
   Function onComplete;
-
-  /// when there is nothing to update
-  Function onNoUpdate;
 
   /// [onVerify] is a callback that will inform whether download success or not.
   /// It only works when [verify] is set to true.
   /// The return is bool.
-  /// - true if all files in files & stamp exists in local.
+  /// - true if all files are downloaded and saved into local storage. And stamp exists in local.
+  /// - otherwise false is returned.
   Function onVerify;
 
   /// [id] id of the download. it's optional.
@@ -122,7 +122,7 @@ class DownloadManager {
     int noOfFilesToDownload = filesToDownload.length;
     if (noOfFilesToDownload == 0) {
       // print('$id: no new files to download (nothing to update): just return: ');
-      if (onNoUpdate != null) onNoUpdate();
+      if (onComplete != null) onComplete(false);
       return;
     }
     // print(filesToDownload);
@@ -133,6 +133,7 @@ class DownloadManager {
 
     /// 시작하자 마자, 먼저 0% 를 한번 알린다.
     onProgress({
+      // 'id': id,
       'noOfFiles': _fileStamp.keys.length,
       'noOfFilesToDownload': noOfFilesToDownload,
       'noOfDownloaded': noOfDownloaded,
@@ -179,6 +180,7 @@ class DownloadManager {
       // print(
       //     'Total files: ${_fileStamp.length}, No of files to download: $noOfFilesToDownload, noOfDownloaded: $noOfDownloaded, success: $countSuccess');
       onProgress({
+        // 'id': id,
         'noOfFiles': _fileStamp.keys.length,
         'noOfFilesToDownload': noOfFilesToDownload,
         'noOfDownloaded': noOfDownloaded,
@@ -186,7 +188,7 @@ class DownloadManager {
         'percentage': percentage,
       });
     }
-    if (onComplete != null) onComplete();
+    if (onComplete != null) onComplete(true);
   }
 
   _downloadFile(String file) async {
