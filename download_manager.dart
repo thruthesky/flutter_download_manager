@@ -82,7 +82,7 @@ class DownloadManager {
     try {
       response = await dio.get(fileStampJsonUrl);
     } catch (e) {
-      print('dio get error:');
+      print('dio get error: url: $fileStampJsonUrl');
       print(e);
       return;
     }
