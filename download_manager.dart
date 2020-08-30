@@ -87,6 +87,11 @@ class DownloadManager {
       return;
     }
 
+    if (response.data['code'] != null) {
+      print('Error on _updateFileStamp(): ');
+      print(response.data);
+    }
+
     _fileStamp = response.data;
 
     // print('fileStampJsonUrl: $fileStampJsonUrl');
@@ -218,6 +223,8 @@ class DownloadManager {
   }
 
   /// verifies if the files from backend are exists in local.
+  /// Note that [onVerify] is called after connecting to server. So, it may be
+  /// a bit slow.
   _verify() async {
     if (onVerify == null) return;
     if (_fileStamp == null) return;
